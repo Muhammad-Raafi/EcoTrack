@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "JenisSampah" ADD COLUMN     "hargaPerKg" DOUBLE PRECISION NOT NULL DEFAULT 0;

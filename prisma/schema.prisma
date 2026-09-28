@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  nama      String
+  email     String   @unique
+  noHp      String   @unique
+  password  String
+  role      String   @default("petugas")
+  saldo     Float    @default(0)
+  laporan   LaporanSampah[]
+  notifikasi Notifikasi[]
+  riwayat   RiwayatAktivitas[]
+  transaksi Transaksi[]
+}
+
+model JenisSampah {
+  id            String   @id @default(uuid())
+  namaJenis     String   @unique
+  hargaPerKg    Float    @default(0) // ✅ TAMBAHKAN INI
+  laporan       LaporanSampah[]
+  kategoriId    String?
+  kategori      Kategori? @relation(fields: [kategoriId], references: [id])
+}
+
+model Wilayah {
+  id        String   @id @default(uuid())
+  nama      String   @unique
+  laporan   LaporanSampah[]
+}
+
+model LaporanSampah {
+  id            String      @id @default(uuid())
+  berat         Float
+  tanggalLapor  DateTime    @default(now())
+  userId        String
+  jenisSampahId String
+  wilayahId     String
+  statusId      String?
+
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jenisSampah   JenisSampah @relation(fields: [jenisSampahId], references: [id], onDelete: Restrict)
+  wilayah       Wilayah     @relation(fields: [wilayahId], references: [id], onDelete: Restrict)
+  status        StatusLaporan? @relation(fields: [statusId], references: [id], onDelete: SetNull)
+
+  foto          FotoSampah?
+
+  @@index([userId])
+  @@index([jenisSampahId])
+  @@index([wilayahId])
+}
+
+model FotoSampah {
+  id        String   @id @default(uuid())
+  imageUrl  String
+  laporanId String   @unique
+  laporan   LaporanSampah @relation(fields: [laporanId], references: [id])
+}
+
+model Kategori {
+  id           String         @id @default(uuid())
+  namaKategori String         @unique
+  deskripsi    String?
+  jenisSampah  JenisSampah[]
+}
+
+model Kendaraan {
+  id            String         @id @default(uuid())
+  platNomor     String         @unique
+  jenisKendaraan String
+  kapasitas     Float
+}
+
+model StatusLaporan {
+  id         String         @id @default(uuid())
+  namaStatus String         @unique
+  laporan    LaporanSampah[]
+}
+
+model Notifikasi {
+  id        String   @id @default(uuid())
+  userId    String
+  pesan     String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RiwayatAktivitas {
+  id        String   @id @default(uuid())
+  userId    String
+  aksi      String
+  detail    String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Transaksi {
+  id            String   @id @default(uuid())
+  jenisSampah   String
+  berat         Float
+  hargaPerKg    Float
+  totalHarga    Float
+  tanggal       DateTime @default(now())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
